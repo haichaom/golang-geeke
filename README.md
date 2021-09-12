@@ -1,10 +1,12 @@
 # Install Tools
 - VS Code
 - go debug
-    https://code.visualstudio.com/docs/languages/go#_debugging
+
+https://code.visualstudio.com/docs/languages/go#_debugging
 
 - git
-    only bash
+
+only bash
 
 # Publish a commit
    - `git clone https://github.com/haichaom/golang-geeke.git`
