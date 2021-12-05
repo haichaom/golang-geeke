@@ -1,6 +1,6 @@
 syntax = "proto3";
 option go_package = "github.com/haichaom/golang-geeke/homework/api/log_process";
-package api;
+package log_process;
 service LogProcess {
   rpc GetLogsByLogLevel (LogLevelRequest) returns (LogLevelReply) {}
 }

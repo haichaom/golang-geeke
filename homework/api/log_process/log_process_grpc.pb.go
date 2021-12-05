@@ -31,7 +31,7 @@ func NewLogProcessClient(cc grpc.ClientConnInterface) LogProcessClient {
 
 func (c *logProcessClient) GetLogsByLogLevel(ctx context.Context, in *LogLevelRequest, opts ...grpc.CallOption) (*LogLevelReply, error) {
 	out := new(LogLevelReply)
-	err := c.cc.Invoke(ctx, "/api.LogProcess/GetLogsByLogLevel", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/log_process.LogProcess/GetLogsByLogLevel", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +76,7 @@ func _LogProcess_GetLogsByLogLevel_Handler(srv interface{}, ctx context.Context,
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.LogProcess/GetLogsByLogLevel",
+		FullMethod: "/log_process.LogProcess/GetLogsByLogLevel",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(LogProcessServer).GetLogsByLogLevel(ctx, req.(*LogLevelRequest))
@@ -88,7 +88,7 @@ func _LogProcess_GetLogsByLogLevel_Handler(srv interface{}, ctx context.Context,
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var LogProcess_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "api.LogProcess",
+	ServiceName: "log_process.LogProcess",
 	HandlerType: (*LogProcessServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -97,5 +97,5 @@ var LogProcess_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "api/log_process.proto",
+	Metadata: "api/log_process/log_process.proto",
 }
