@@ -4,12 +4,19 @@ import (
 	"fmt"
 	"log"
 	"net"
+        "os"
+	"os/signal"
 
+	"golang.org/x/sync/errgroup"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 
 	pb "github.com/haichaom/golang-geeke/homework/api/log_process"
 	"github.com/haichaom/golang-geeke/homework/errors"
+)
+
+var (
+    grpcServer       *grpc.Server
 )
 
 type LogServer struct {
@@ -19,24 +26,62 @@ type LogServer struct {
 func (s *LogServer) GetLogsByLogLevel(ctx context.Context, req *pb.LogLevelRequest) (*pb.LogLevelReply, error) {
 	log.Printf("Receive message body from client: %s %s", req.LogLevel, req.LogPath)
 	if req.LogPath == "invalid.log" {
-		return nil, errors.BadRequest("invalid request",
+		return nil, errors.BadRequest("invalid_request",
 			fmt.Sprintf("invalid argument logpath: %s", req.LogPath))
 	}
 	return &pb.LogLevelReply{Message: "Hello From the Server!"}, nil
 }
 
+
+
 func main() {
 
-	lis, err := net.Listen("tcp", ":9000")
-	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
-	}
+        ctx := context.Background()
+        ctx, cancel := context.WithCancel(ctx)
+        group, errCtx := errgroup.WithContext(ctx)
+        group.Go(func() error{
+	   lis, err := net.Listen("tcp", ":9000")
+	   if err != nil {
+              return errors.InternalServer("failed_start_server",
+                        fmt.Sprintf("failed to listen : %s", err))
+	   }
 
-	grpcServer := grpc.NewServer()
-	server := LogServer{}
-	pb.RegisterLogProcessServer(grpcServer, &server)
+	   grpcServer = grpc.NewServer()
+	   server := LogServer{}
+	   pb.RegisterLogProcessServer(grpcServer, &server)
 
-	if err := grpcServer.Serve(lis); err != nil {
-		log.Fatalf("failed to serve: %s", err)
+	   if err := grpcServer.Serve(lis); err != nil {
+              return errors.InternalServer("failed_start_server",
+                        fmt.Sprintf("failed to serve: %s", err))
+	   }
+           return nil
+        })
+        group.Go(func() error {
+                <-errCtx.Done()
+                if grpcServer != nil{
+                    log.Print("Shutdown grpc server")
+                    grpcServer.GracefulStop()
+                }
+                return nil
+        })
+	group.Go(func() error {
+	        c := make(chan os.Signal, 1)
+	        signal.Notify(c)
+		for {
+			select {
+			case <-errCtx.Done():
+				log.Print("ctx is Done in listening interuppt routine")
+				return errCtx.Err()
+			case sig := <-c:
+				log.Printf("Signal received: ", sig)
+				cancel()
+			}
+		}
+	})
+
+	if err := group.Wait(); err != nil {
+		log.Printf("grpcServer run into an error: ", err)
+	} else {
+		log.Print("All is done gracfully")
 	}
 }

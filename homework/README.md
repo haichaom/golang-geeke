@@ -27,6 +27,7 @@ protoc api/log_process/log_process.proto --go_out=. --go_opt=paths=source_relati
 
 ##Init mod:
 go mod init github.com/haichaom/golang-geeke/homework
+go mod tidy
 
 
 ## Run
