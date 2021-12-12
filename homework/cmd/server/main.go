@@ -1,21 +1,27 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net"
 
-	"google.golang.org/grpc"
 	"golang.org/x/net/context"
+	"google.golang.org/grpc"
 
 	pb "github.com/haichaom/golang-geeke/homework/api/log_process"
+	"github.com/haichaom/golang-geeke/homework/errors"
 )
 
 type LogServer struct {
-    pb.UnimplementedLogProcessServer
+	pb.UnimplementedLogProcessServer
 }
 
 func (s *LogServer) GetLogsByLogLevel(ctx context.Context, req *pb.LogLevelRequest) (*pb.LogLevelReply, error) {
 	log.Printf("Receive message body from client: %s %s", req.LogLevel, req.LogPath)
+	if req.LogPath == "invalid.log" {
+		return nil, errors.BadRequest("invalid request",
+			fmt.Sprintf("invalid argument logpath: %s", req.LogPath))
+	}
 	return &pb.LogLevelReply{Message: "Hello From the Server!"}, nil
 }
 

@@ -23,4 +23,10 @@ func main() {
 		log.Fatal("Failed to get logs by loglevel: %s", err)
 	}
 	log.Printf("Received from server:%s ", resp.Message)
+	req = &log_process.LogLevelRequest{LogLevel: "Info", LogPath: "invalid.log"}
+	resp, err = client.GetLogsByLogLevel(context.Background(), req)
+	if err != nil {
+		log.Fatal("Failed to get logs by loglevel: %s", err)
+	}
+	log.Printf("Received from server:%s ", resp.Message)
 }
