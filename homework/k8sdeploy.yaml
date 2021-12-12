@@ -1,0 +1,72 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: log-server
+  labels:
+    app: log-server
+    instance: test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: log-server
+      instance: test
+  template:
+    metadata:
+      labels:
+        app: log-server
+        instance: test
+    spec:
+      containers:
+        - name: log-server
+          image: <image_repo>
+          env:
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+          ports:
+            - containerPort: 9000
+          resources:
+            requests:
+              memory: "500Mi"
+              cpu: "100m"
+            limits:
+              memory: "2048Mi"
+              cpu: "1000m"
+          volumeMounts:
+          - mountPath: "/nfs1"
+            name: "volume-1"
+            readOnly: false
+          - mountPath: "/nfs2"
+            name: "volume-2"
+            readOnly: false
+      volumes:
+      - name: "volume-1"
+        nfs:
+          path: "/nfs1"
+          readOnly: false
+          server: "xxx1"
+      - name: "volume-2"
+        nfs:
+          path: "/nfs2"
+          readOnly: false
+          server: "xxx2"
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: log-server
+  labels:
+    app: log-server
+    instance: test
+spec:
+  type: LoadBalancer
+  selector:
+    app: log-server
+    instance: test
+  ports:
+    - protocol: TCP
+      port: 9000
+      targetPort: 9000
